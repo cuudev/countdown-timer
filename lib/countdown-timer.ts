@@ -6,14 +6,12 @@ export class CountdownTimer {
   private state: CountdownState
 
   private countdown: number
-  private readonly delay: any
-  private readonly func: any
-  private readonly done: any
-  private pausedTime: number
+  private delay: any
   private fires: number
+  private readonly func: any
 
-  private lastTimeFired: Date | undefined
-  private lastPauseTime: Date | undefined
+  private lastTimeFired!: Date
+  private lastPauseTime!: Date
   private timerId: ReturnType<typeof setInterval> | undefined
   private resumeId: ReturnType<typeof setTimeout> | undefined
 
@@ -41,7 +39,6 @@ export class CountdownTimer {
     this.countdown = countdown;
     this.delay = delay; //in ms
     this.func = func;
-    this.pausedTime = 0; //how long we've been paused for
     this.fires = 0;
 
     this.event.countdown = this.countdown
@@ -56,11 +53,6 @@ export class CountdownTimer {
       this.stop()
       return
     }
-    //const event: CountdownEvent = {
-    //  passedTime: this.fires * this.delay,
-    //  remainingTime: this.countdown * 1000 - this.fires * this.delay,
-    //  state : this.state
-    //}
     this.event.state = this.state
     this.event.passedTime = this.fires * this.delay
     this.event.remainingTime = this.countdown * 1000 - this.event.passedTime
@@ -73,7 +65,7 @@ export class CountdownTimer {
    * start timer
    */
   start() {
-    // console.info('Starting Timer ' + this.name);
+    console.info('Starting Timer ');
     this.timerId = setInterval(() => this.proxyCallback(), this.delay);
     this.lastTimeFired = new Date();
     if (this.state === CountdownState.IDLE) {
@@ -86,13 +78,12 @@ export class CountdownTimer {
    * pause timer
    */
   pause() {
-    if (this.state !== CountdownState.RUNNING && this.state !== CountdownState.RESUMED) return;
+    if (this.state !== CountdownState.RUNNING && this.state !== CountdownState.RESUMED)
+      return;
 
-    // console.info('Pausing Timer ' + this.name);
-
-    // @ts-ignore
-    this.remaining = this.delay - (new Date() - this.lastTimeFired) + this.pausedTime;
+    console.info('Pausing Timer ');
     this.lastPauseTime = new Date();
+    this.remaining = this.lastPauseTime.valueOf() - this.lastTimeFired.valueOf()
     clearInterval(this.timerId);
     clearTimeout(this.resumeId);
     this.state = CountdownState.PAUSED;
@@ -104,11 +95,9 @@ export class CountdownTimer {
    * resume timer
    */
   resume(){
-    if (this.state !== CountdownState.PAUSED) return;
+    if (this.state !== CountdownState.PAUSED)
+      return;
 
-    // @ts-ignore
-    this.pausedTime += new Date() - this.lastPauseTime;
-    // console.info(`Resuming Timer ${this.name} with ${this.remaining} remaining`);
     this.state = CountdownState.RESUMED;
     this.resumeId = setTimeout(() => this.timeoutCallback(), this.remaining);
     this.event.state = this.state
@@ -118,7 +107,6 @@ export class CountdownTimer {
   timeoutCallback() {
     if (this.state !== CountdownState.RESUMED) return;
 
-    // this.pausedTime = 0;
     this.proxyCallback();
     this.start();
   }
@@ -127,7 +115,8 @@ export class CountdownTimer {
    * stop timer
    */
   stop() {
-    if(this.state === CountdownState.IDLE) return;
+    if(this.state === CountdownState.IDLE)
+      return;
 
     // console.info('Stopping Timer %s. Fired %s/%s times', this.name, this.fires, this.maxFires);
     clearInterval(this.timerId);
@@ -138,14 +127,26 @@ export class CountdownTimer {
   }
 
   /***
-   * reset countdown
+   * set countdown
    * @param countdown
    */
-  resetCountdown(countdown: number) {
+  setCountdown(countdown: number) {
     this.stop()
     this.countdown = countdown
   }
 
+  /***
+   *
+   * @param delay
+   */
+  setDelay(delay: number) {
+    this.stop()
+    this.delay = delay
+  }
+
+  /***
+   *
+   */
   getState(): CountdownState {
     return this.state
   }
