@@ -1,5 +1,6 @@
 import { CountdownEvent } from './countdown-event'
 import { CountdownState } from './countdown-state'
+import { CountdownFireType } from './countdown-fire-type'
 
 export class CountdownTimer {
   private remaining: number
@@ -21,6 +22,7 @@ export class CountdownTimer {
     passedTime: 0,
     remainingTime: 0,
     state : CountdownState.IDLE,
+    fireBy : CountdownFireType.TIMER,
   }
 
   /***
@@ -50,10 +52,11 @@ export class CountdownTimer {
    */
   proxyCallback() {
     if (this.countdown * 1000 < this.fires * this.delay) {
-      this.stop()
+      this.stop(CountdownFireType.TIMER)
       return
     }
     this.event.state = this.state
+    this.event.fireBy = CountdownFireType.TIMER
     this.event.passedTime = this.fires * this.delay
     this.event.remainingTime = this.countdown * 1000 - this.event.passedTime
     this.lastTimeFired = new Date();
@@ -88,6 +91,7 @@ export class CountdownTimer {
     clearTimeout(this.resumeId);
     this.state = CountdownState.PAUSED;
     this.event.state = this.state
+    this.event.fireBy = CountdownFireType.USER
     this.func(this.event)
   }
 
@@ -101,6 +105,7 @@ export class CountdownTimer {
     this.state = CountdownState.RESUMED;
     this.resumeId = setTimeout(() => this.timeoutCallback(), this.remaining);
     this.event.state = this.state
+    this.event.fireBy = CountdownFireType.USER
     this.func(this.event)
   }
 
@@ -114,7 +119,7 @@ export class CountdownTimer {
   /***
    * stop timer
    */
-  stop() {
+  stop(fireBy: CountdownFireType = CountdownFireType.USER) {
     if(this.state === CountdownState.IDLE)
       return;
 
@@ -123,6 +128,7 @@ export class CountdownTimer {
     clearTimeout(this.resumeId);
     this.state = CountdownState.IDLE;
     this.event.state = this.state
+    this.event.fireBy = fireBy
     this.func(this.event)
   }
 

@@ -5,7 +5,7 @@ import { CountdownState } from '../lib/countdown-state'
 describe('Test Countdown Timer', () => {
   let timer: CountdownTimer
   before(() => {
-    timer = new CountdownTimer(50, 10, (event) => {
+    timer = new CountdownTimer(5, 10, (event) => {
       //console.log(event);
     })
   })
@@ -29,7 +29,7 @@ describe('Test Countdown Timer', () => {
     expect(timer.getState()).to.equals(CountdownState.IDLE)
   })
   it('total time', async () => {
-    const tt = new CountdownTimer(10, 10, (event) => {
+    const tt = new CountdownTimer(3, 10, (event) => {
       console.log(event)
     })
     tt.start()
